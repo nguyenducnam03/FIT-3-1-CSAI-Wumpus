@@ -350,7 +350,7 @@ class Propositional_Logic:
 
                     #Shoot graphic
                     self.agent.shoot(self.screen, dir.pos_matrix)
-                    pygame.time.delay(100)
+                    pygame.time.delay(500)
                     self.objmap.show_cell(self.screen, dir.pos_matrix[0], dir.pos_matrix[1], False)
 
                     if dir.checkWumpus():
@@ -442,7 +442,7 @@ class Propositional_Logic:
                 self.game.stageGame_action()
                 previousCell_list.append(previousCell.pos_matrix)
                 self.move_to(cell)
-                if cell.pos_matrix == (3,2):
+                if cell.pos_matrix == (3,4):
                     print("ducnam ne")
                 #self.write_output('Move to: ' + str(self.agent_cell.pos_matrix))
 
@@ -450,7 +450,7 @@ class Propositional_Logic:
                     return False
                 pygame.time.delay(50)
 
-                if saved_agent_pos == (2,0):
+                if saved_agent_pos == (3,4):
                     print("ducnam ne")    
 
                 if self.agent_cell.pos_matrix != saved_agent_pos:
