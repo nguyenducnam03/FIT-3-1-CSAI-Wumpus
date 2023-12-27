@@ -1,0 +1,26 @@
+# PL - Resolution:
+
+## 1. Pseudo-code:
+
+function PL_Resolution(KB, alpha) -> TRUE or FALSE
+  **input**: KB    - knowledge base
+             alpha - query
+
+  clause <- the set of clause in the CNF representation of KB ^ -alpha
+  new    <- { }
+
+  **loop do**
+    **for each** pair of clause Ci Cj in clause do:
+      resolvents <- PL-Resolve(Ci, Cj)
+      **if** resolvents contains the empty clause then return (TRUE)
+        new <- new AND resolvents
+    **if** new (is subset or equal) clauses:
+    clauses <- clauses AND new
+
+## 2. PL-resolution
+- PL-resolution lặp qua các cặp mệnh đề (clauses pair) - độ phức tạp theo cấp số nhân
+
+
+
+    
+    
