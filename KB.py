@@ -1,53 +1,40 @@
 import itertools
 import copy
 
-class KnowledgeBase:
+class KnowledgeBase2:
     def __init__(self):
         self.KB = []
 
-    # Xóa một mệnh đề khỏi cơ sở tri thức
-    def rem(self, clause):
-        clause = self.standard_clause(clause)
-        if clause in self.KB:
-            self.KB.remove(clause)
+    @staticmethod  # phương thức tĩnh, thuộc về lớp chứ không phải thể hiện của lớp
+    def standardize_clause(clause):
+        return sorted(list(set(clause)))
 
-    # Lấy bản phủ của một nguyên tử âm
-    # def getNegative_atom(self, atom):
-    #     atom_str = str(atom)
-    #     if atom_str[0] == '-':
-    #         return atom_str[1:]
-    #     else:
-    #         return '-' + atom_str
-    def getNegative_atom(self, atom):
-        atom_str = str(atom)
-        if atom_str and atom_str[0] == '-':
-            return atom_str[1:]
+    #Add / Remove clause to KB -----------------------------------------------------------------------------------------
+    def add(self, clause):
+        clause = self.standardize_clause(clause)
+        if clause not in self.KB: #and not self.checkComplementary(clause):
+            self.KB.append(clause)
+
+    # def remove(self, clause):
+    #     clause = self.standardize_clause(clause)
+    #     if clause in self.KB:
+    #         self.KB.remove(clause)
+
+    #Get Negative Form of literal --------------------------------------------------------------------------------------
+    @staticmethod
+    def getNegative(literal):
+        if literal[0] == '-':
+            return literal[1:]
         else:
-            return '-' + atom_str
+            return '-' + literal
 
-
-    # Lấy bản phủ của một truy vấn âm
-    def getNegative(self, query):
-        res = []
-        for clause in query:
-            new = []
-            for atom in clause:
-                new.append([self.getNegative_atom(atom)])
-            res.append(new)
-
-        if len(res) == 1:
-            return list(itertools.chain.from_iterable(res))
-        else:
-            return self.toCNF(res)
-
-    # Kiểm tra xem một mệnh đề có đúng hay không trong danh sách các mệnh đề
     def check_True(self, clause, list_clauses):
         for c in list_clauses:
             if set(c).issubset(set(clause)):
                 return True
         return False
 
-    # Loại bỏ các mệnh đề đánh giá đúng từ danh sách các mệnh đề
+    #Remove always True clause -----------------------------------------------------------------------------------------
     def remove_eval(self, clauses):
         res = []
         for c in clauses:
@@ -55,43 +42,28 @@ class KnowledgeBase:
                 res.append(c)
         return res
 
-    # Chuyển đổi mệnh đề sang dạng chuẩn hóa
-    def toCNF(self, clauses):
-        res = []
-        product_all = list(itertools.product(*clauses))
-        for i in product_all:
-            new = self.normClause(list(itertools.chain.from_iterable(list(i))))
-            if not self.checkComplementary(new) and new not in res:
-                res.append(new)
-        res.sort(key=len)
-        res = self.remove_eval(res)
-        return res
-
-    # Kiểm tra xem một mệnh đề có chứa bổ sung không
+    #Check (a v -a) in  clause ----------------------------------------------------------------------------------------|
     def checkComplementary(self, clause):
-        for atom in clause:
-            if self.getNegative_atom(atom) in clause:
+        for literal in clause:
+            if self.getNegative(literal) in clause:
                 return True
         return False
 
-    # Chuẩn hóa mệnh đề
-    def standard_clause(self, clause):
-        # Chuyển đổi nguyên tử thành chuỗi
-        clause = [str(atom) for atom in clause]
-
-        # Loại bỏ các bản sao
+    #Remove duplicate literals (in 1 clause) and sort them lexicographically ------------------------------------------|
+    def normClause(self, clause):
+        # Remove duplicates
         clause = list(dict.fromkeys(clause))
 
-        # Sắp xếp theo thứ tự chữ cái
+        # Sort by alphabet
         tuple_form = []
-        for atom in clause:
-            if atom[0] == '-':
-                tuple_form.append((atom[1:], -1))
+        for literal in clause:
+            if literal[0] == '-':
+                tuple_form.append((literal[1:], -1))
             else:
-                tuple_form.append((atom, 1))
+                tuple_form.append((literal[0:], 1))
         tuple_form.sort()
 
-        # Xây dựng lại mệnh đề
+        # Rebuild clause
         res = []
         for tup in tuple_form:
             if tup[1] == -1:
@@ -100,71 +72,143 @@ class KnowledgeBase:
                 res.append(tup[0])
         return res
 
-    # Giải quyết một cặp mệnh đề
+    #Implementation of Resolution Inference Rule -----------------------------------------------------------------------
+    """
+    Caluclating resolvents step in programs delete two opposite facts:
+    a (in sentence 1) & -a (in sentence 2) -> empty
+    """
     def resolve(self, clause_i, clause_j):
         new_clause = []
-        for atom in clause_i:
-            neg_atom = self.getNegative_atom(atom)
-            if neg_atom in clause_j:
+        for literal in clause_i:
+            neg_literal = self.getNegative(literal)
+            if neg_literal in clause_j:
                 temp_c_i = clause_i.copy()
                 temp_c_j = clause_j.copy()
-                temp_c_i.remove(atom)
-                temp_c_j.remove(neg_atom)
-                if not temp_c_i and not temp_c_j:
+                print('temp_c_i', temp_c_i, 'temp_c_j', temp_c_j)
+                temp_c_i.remove(literal)
+                temp_c_j.remove(neg_literal)
+                print('temp_c_i', temp_c_i, 'temp_c_j', temp_c_j)
+                print('----------------------------------------')
+                #if (not temp_c_i) and (not temp_c_j):
+                if len(temp_c_i) == 0 and len(temp_c_j) == 0:
                     new_clause.append(['{}'])
                 else:
                     clause = temp_c_i + temp_c_j
-                    clause = self.standard_clause(clause)
-                    if not self.checkComplementary(clause) and clause not in self.KB:
+                    if clause not in self.KB:
                         new_clause.append(clause)
         return new_clause
 
-    # Giải quyết truy vấn
-    def solve(self, query):
+    #PL resolution
+    def inference(self, neg_alpha):
         tempKB = KnowledgeBase()
         tempKB.KB = self.KB.copy()
 
-        neg_query = self.getNegative(query)
-        print(neg_query)
-        for neg_atom in neg_query:
-            tempKB.add(neg_atom)
+        # neg_alpha = [item for sublist in neg_alpha for item in sublist]
+        print('Negative alpha: ', neg_alpha)
+        tempKB.add(neg_alpha)
 
         result = []
         while True:
             clause_pairs = list(itertools.combinations(range(len(tempKB.KB)), 2))
-
             resolvents = []
             for pair in clause_pairs:
                 resolvent = tempKB.resolve(tempKB.KB[pair[0]], tempKB.KB[pair[1]])
                 if resolvent and resolvent not in resolvents:
                     resolvents.append(resolvent)
 
-            resolvents = list(itertools.chain.from_iterable(resolvents))
+            #resolvents = list(itertools.chain.from_iterable(resolvents))
+            print('resolvents:', resolvents, 'len:', len(resolvents))
             result.append(resolvents)
 
             if not resolvents:
-                return result, False
+                return False
             else:
                 if ['{}'] in resolvents:
-                    return result, True
+                    return True
                 else:
                     for res in resolvents:
                         tempKB.add(res)
 
-    # Thêm một mệnh đề vào cơ sở tri thức
+class KnowledgeBase:
+    # Constructor.
+    def __init__(self):
+        self.KB = []
+        self.alpha = []
+        self.new_clauses_list = []
+        self.solution = False
+
+    #Return a standardized clause:
+    @staticmethod
+    def standard_clause(clause: list):
+        return sorted(list(set(copy.deepcopy(clause))), key=lambda x: x[-3])
+
     def add(self, clause):
-        if clause not in self.KB and not self.checkComplementary(clause):
+        clause = self.standard_clause(clause)
+        if clause not in self.KB:  # and not self.checkComplementary(clause):
             self.KB.append(clause)
 
-    # Suy luận
-    def inference(self, not_alpha):
-        tempKB = KnowledgeBase()
-        KB_list = tempKB.KB.copy()
-        negative_alpha = not_alpha
-        for i in KB_list:
-            tempKB.add(i)
-        for i in negative_alpha:
-            tempKB.add(i)
-        result, is_entailed = tempKB.solve(not_alpha)
+    def rem(self, clause):
+        clause = self.standard_clause(clause)
+        if clause in self.KB:
+            self.KB.remove(clause)
 
-        return not is_entailed
+    #Get Negative of literal
+    @staticmethod
+    def getNegative(literal: str):
+        if literal[0] == '-':
+            return literal[1:]
+        return '-' + literal
+
+    #Check if 2 literals are complementary (etc: P11 vs -P11)
+    @staticmethod
+    def is_complentary_literals(literal_1: str, literal_2: str):
+        return len(literal_1) != len(literal_2) and literal_1[-3:] == literal_2[-3:]
+
+    # # Check if a clause is empty.
+    # @staticmethod
+    # def is_empty_clause(clause: list):
+    #     return len(clause) == 0
+
+    # Check if a clause is valid (always True).
+    def is_valid_clause(self, clause):
+        for i in range(len(clause) - 1):
+            if self.is_complentary_literals(clause[i], clause[i + 1]):
+                return True
+        return False
+
+    # Resolve 2 clauses then return a list of resolvents (list of clauses).
+    def resolve(self, clause_1: list, clause_2: list):
+        resolvents = []
+        for i in range(len(clause_1)):
+            for j in range(len(clause_2)):
+                if self.is_complentary_literals(clause_1[i], clause_2[j]):
+                    resolvent = clause_1[:i] + clause_1[i + 1:] + clause_2[:j] + clause_2[j + 1:]
+                    resolvents.append(self.standard_clause(resolvent))
+        return resolvents
+
+    #PL Resolution
+    def inference(self, neg_alpha):
+        clause_list = copy.deepcopy(self.KB)
+        if neg_alpha not in clause_list:
+            clause_list.append(neg_alpha)
+
+        while True:
+            self.new_clauses_list.append([])
+
+            for i in range(len(clause_list)):
+                for j in range(i + 1, len(clause_list)):
+                    resolvents = self.resolve(clause_list[i], clause_list[j])
+                    if [] in resolvents:
+                        self.new_clauses_list[-1].append([])
+                        return True
+
+                    for resolvent in resolvents:
+                        if self.is_valid_clause(resolvent):
+                            break
+                        if resolvent not in clause_list and resolvent not in self.new_clauses_list[-1]:
+                            self.new_clauses_list[-1].append(resolvent)
+
+            if len(self.new_clauses_list[-1]) == 0:
+                return False
+
+            clause_list += self.new_clauses_list[-1]

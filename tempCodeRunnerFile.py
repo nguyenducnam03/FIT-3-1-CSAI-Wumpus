@@ -1,2 +1,1 @@
 
-    game = wumpus_game()

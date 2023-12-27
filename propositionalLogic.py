@@ -234,7 +234,7 @@ class Propositional_Logic:
             knownPit_cell = []
             for adj in adjCell:
                 # if adj.checkExplored() and adj.checkPit(): #Có dư không khi đã check explored phía trên rồi
-                if self.cell_check_explored(adj) and adj.checkPit(): #Có dư không khi đã check explored phía trên rồi
+                if self.cell_check_explored(adj) and adj.checkPit(): 
                     knownPit_cell.append(adj)
             for cell in knownPit_cell:
                 adjCell.remove(cell)
@@ -258,6 +258,7 @@ class Propositional_Logic:
                         self.print_output("Detect Pit in " + str(adj.pos_matrix))
 
                         adj.setexploredCell()
+                        print("show 1", (adj.pos_matrix[0], adj.pos_matrix[1]))
                         self.objmap.show_cell(self.screen, adj.pos_matrix[0], adj.pos_matrix[1], True)
                         adj.set_previousCell(adj)
                         dangerCell.append(adj)
@@ -274,7 +275,7 @@ class Propositional_Logic:
                             self.Action(s_action_de_npit)
                             self.print_output("Detect no Pit in " + str(adj.pos_matrix))
 
-                            adj.setexploredCell()
+                            # adj.setexploredCell()
 
                         #No Pit uninferencable / Pit uninferencable: add :>
                         else:
@@ -427,7 +428,7 @@ class Propositional_Logic:
                         break
                     index_nam-=1
                 print()
-
+                pygame.time.delay(100)
                 self.move_to(adjCell_list[index_previous])
                 while (previousCell_list[-1] != adjCell_list[index_previous].pos_matrix):
                     previousCell_list.remove(previousCell_list[-1])
@@ -438,9 +439,10 @@ class Propositional_Logic:
                 # if cell.checkExplored():
                 if self.cell_check_explored(cell):
                     continue
-                pygame.time.delay(50)
+                
                 self.game.stageGame_action()
                 previousCell_list.append(previousCell.pos_matrix)
+                pygame.time.delay(100)
                 self.move_to(cell)
                 if cell.pos_matrix == (3,4):
                     print("ducnam ne")
@@ -448,7 +450,7 @@ class Propositional_Logic:
 
                 if not self.backtrackSearch():
                     return False
-                pygame.time.delay(50)
+                
 
                 if saved_agent_pos == (3,4):
                     print("ducnam ne")    
@@ -502,7 +504,7 @@ class Propositional_Logic:
                             break
                         index_nam-=1
                     print()
-
+                    pygame.time.delay(100)
                     self.move_to(adjCell_list[index_previous])
                     while (previousCell_list[-1] != adjCell_list[index_previous].pos_matrix):
                         previousCell_list.remove(previousCell_list[-1])
