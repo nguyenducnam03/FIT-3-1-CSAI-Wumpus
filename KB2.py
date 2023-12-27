@@ -1,7 +1,15 @@
 import itertools
 import copy
 
-class KnowledgeBase2:
+import re
+def extract_number(s):
+    number = re.search(r'\d+', s)
+    if number:
+        return int(number.group())
+    else:
+        return None
+
+# class KnowledgeBase2:
     def __init__(self):
         self.KB = []
 
@@ -189,6 +197,16 @@ class KnowledgeBase:
     #PL Resolution
     def inference(self, neg_alpha):
         clause_list = copy.deepcopy(self.KB)
+        temp_num = extract_number(neg_alpha[0])
+        # clause_list = KnowledgeBase()
+        for KB in self.KB:
+            for kb in KB:
+                number_part = extract_number(kb)
+                if abs(number_part-temp_num) not in [1,10,9,11,2,20,18,22,21,19,8,12]:
+                # if abs(number_part-temp_num) not in [1,10,9,11]:
+                    clause_list.remove(KB)
+                    break
+
         if neg_alpha not in clause_list:
             clause_list.append(neg_alpha)
 

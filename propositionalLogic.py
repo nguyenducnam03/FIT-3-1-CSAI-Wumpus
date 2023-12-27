@@ -8,7 +8,7 @@ from constant import *
 import copy
 
 import copy
-
+speed_time = 100
 
 
 previousCell_list = []
@@ -229,6 +229,8 @@ class Propositional_Logic:
 
         dangerCell = [] #To store dangerous cell can infer from this cell?
         # current cell contain Stench, Breeze -> inference from KB to make decision
+        if self.agent_cell.pos_matrix == (1,2):
+            print("ducnam")
         if not self.agent_cell.isSafe():
             #remove Pit cell that already known
             knownPit_cell = []
@@ -238,48 +240,6 @@ class Propositional_Logic:
                     knownPit_cell.append(adj)
             for cell in knownPit_cell:
                 adjCell.remove(cell)
-
-            #Inference PIT if current cell contain Breeze
-            dangerCell = []
-            if self.agent_cell.checkBreeze():
-                for adj in adjCell:
-                    #Print
-                    self.print_output('Inference Pit: ' + str(adj.pos_matrix))
-                    #self.write_output('Inference Pit: ' + str(adj.pos_matrix))
-
-                    #Infer
-                    self.Action(s_action_infer_pit)
-                    neg_alpha = [adj.get_Literal(s_entities_pit, '-')]
-                    ispit = self.KB.inference(neg_alpha)
-
-                    #Pit inferencable: there is pit in adj
-                    if ispit:
-                        self.Action(s_action_de_pit)
-                        self.print_output("Detect Pit in " + str(adj.pos_matrix))
-
-                        adj.setexploredCell()
-                        print("show 1", (adj.pos_matrix[0], adj.pos_matrix[1]))
-                        self.objmap.show_cell(self.screen, adj.pos_matrix[0], adj.pos_matrix[1], True)
-                        adj.set_previousCell(adj)
-                        dangerCell.append(adj)
-
-                    #Pit uninferencable: cant infer pit
-                    else:
-                        #check if agent can inference no Pit
-                        self.Action(s_action_infer_npit)
-                        neg_alpha = [adj.get_Literal(s_entities_pit, '+')]
-                        isnotpit  = self.KB.inference(neg_alpha)
-
-                        #Not Pit inferencable: there is no pit
-                        if isnotpit:
-                            self.Action(s_action_de_npit)
-                            self.print_output("Detect no Pit in " + str(adj.pos_matrix))
-
-                            # adj.setexploredCell()
-
-                        #No Pit uninferencable / Pit uninferencable: add :>
-                        else:
-                            dangerCell.append(adj)
 
             #Inference WUMPUS if current cell contain Stench
             if self.agent_cell.checkStench():
@@ -351,7 +311,7 @@ class Propositional_Logic:
 
                     #Shoot graphic
                     self.agent.shoot(self.screen, dir.pos_matrix)
-                    pygame.time.delay(500)
+                    pygame.time.delay(speed_time)
                     self.objmap.show_cell(self.screen, dir.pos_matrix[0], dir.pos_matrix[1], False)
 
                     if dir.checkWumpus():
@@ -366,7 +326,48 @@ class Propositional_Logic:
                         if dir in dangerCell:
                             dangerCell.remove(dir)
                         break
+            
+            #Inference PIT if current cell contain Breeze
+            # dangerCell = []
+            if self.agent_cell.checkBreeze():
+                for adj in adjCell:
+                    #Print
+                    self.print_output('Inference Pit: ' + str(adj.pos_matrix))
+                    #self.write_output('Inference Pit: ' + str(adj.pos_matrix))
 
+                    #Infer
+                    self.Action(s_action_infer_pit)
+                    neg_alpha = [adj.get_Literal(s_entities_pit, '-')]
+                    ispit = self.KB.inference(neg_alpha)
+
+                    #Pit inferencable: there is pit in adj
+                    if ispit:
+                        self.Action(s_action_de_pit)
+                        self.print_output("Detect Pit in " + str(adj.pos_matrix))
+
+                        adj.setexploredCell()
+                        print("show 1", (adj.pos_matrix[0], adj.pos_matrix[1]))
+                        self.objmap.show_cell(self.screen, adj.pos_matrix[0], adj.pos_matrix[1], True)
+                        adj.set_previousCell(adj)
+                        dangerCell.append(adj)
+
+                    #Pit uninferencable: cant infer pit
+                    else:
+                        #check if agent can inference no Pit
+                        self.Action(s_action_infer_npit)
+                        neg_alpha = [adj.get_Literal(s_entities_pit, '+')]
+                        isnotpit  = self.KB.inference(neg_alpha)
+
+                        #Not Pit inferencable: there is no pit
+                        if isnotpit:
+                            self.Action(s_action_de_npit)
+                            self.print_output("Detect no Pit in " + str(adj.pos_matrix))
+
+                            # adj.setexploredCell()
+
+                        #No Pit uninferencable / Pit uninferencable: add :>
+                        else:
+                            dangerCell.append(adj)
         #Remove all danger cell in next_cell_list -> safe next_cell_list
         dangerCell = list(set(dangerCell))
         for danger in dangerCell:
@@ -428,7 +429,7 @@ class Propositional_Logic:
                         break
                     index_nam-=1
                 print()
-                pygame.time.delay(100)
+                pygame.time.delay(speed_time)
                 self.move_to(adjCell_list[index_previous])
                 while (previousCell_list[-1] != adjCell_list[index_previous].pos_matrix):
                     previousCell_list.remove(previousCell_list[-1])
@@ -442,7 +443,7 @@ class Propositional_Logic:
                 
                 self.game.stageGame_action()
                 previousCell_list.append(previousCell.pos_matrix)
-                pygame.time.delay(100)
+                pygame.time.delay(speed_time)
                 self.move_to(cell)
                 if cell.pos_matrix == (3,4):
                     print("ducnam ne")
@@ -452,7 +453,7 @@ class Propositional_Logic:
                     return False
                 
 
-                if saved_agent_pos == (3,4):
+                if saved_agent_pos == (0,2):
                     print("ducnam ne")    
 
                 if self.agent_cell.pos_matrix != saved_agent_pos:
@@ -467,8 +468,8 @@ class Propositional_Logic:
                 if temp_T:
                     temp = []
                     for cell_nam in adjCell_list:
-                        if not cell_nam.isSafe():
-                            temp.append(cell_nam)
+                        # if not cell_nam.isSafe():
+                        #     temp.append(cell_nam)
                         if not cell_nam.pos_matrix in previousCell_list:
                             temp.append(cell_nam)
                     for cell_nam in temp:
