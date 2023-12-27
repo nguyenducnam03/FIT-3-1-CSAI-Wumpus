@@ -241,6 +241,48 @@ class Propositional_Logic:
             for cell in knownPit_cell:
                 adjCell.remove(cell)
 
+            #Inference PIT if current cell contain Breeze
+            # dangerCell = []
+            if self.agent_cell.checkBreeze():
+                for adj in adjCell:
+                    #Print
+                    self.print_output('Inference Pit: ' + str(adj.pos_matrix))
+                    #self.write_output('Inference Pit: ' + str(adj.pos_matrix))
+
+                    #Infer
+                    self.Action(s_action_infer_pit)
+                    neg_alpha = [adj.get_Literal(s_entities_pit, '-')]
+                    ispit = self.KB.inference(neg_alpha)
+
+                    #Pit inferencable: there is pit in adj
+                    if ispit:
+                        self.Action(s_action_de_pit)
+                        self.print_output("Detect Pit in " + str(adj.pos_matrix))
+
+                        adj.setexploredCell()
+                        print("show 1", (adj.pos_matrix[0], adj.pos_matrix[1]))
+                        self.objmap.show_cell(self.screen, adj.pos_matrix[0], adj.pos_matrix[1], True)
+                        adj.set_previousCell(adj)
+                        dangerCell.append(adj)
+
+                    #Pit uninferencable: cant infer pit
+                    else:
+                        #check if agent can inference no Pit
+                        self.Action(s_action_infer_npit)
+                        neg_alpha = [adj.get_Literal(s_entities_pit, '+')]
+                        isnotpit  = self.KB.inference(neg_alpha)
+
+                        #Not Pit inferencable: there is no pit
+                        if isnotpit:
+                            self.Action(s_action_de_npit)
+                            self.print_output("Detect no Pit in " + str(adj.pos_matrix))
+
+                            # adj.setexploredCell()
+
+                        #No Pit uninferencable / Pit uninferencable: add :>
+                        else:
+                            dangerCell.append(adj)
+
             #Inference WUMPUS if current cell contain Stench
             if self.agent_cell.checkStench():
                 for adj in adjCell:
@@ -327,47 +369,7 @@ class Propositional_Logic:
                             dangerCell.remove(dir)
                         break
             
-            #Inference PIT if current cell contain Breeze
-            # dangerCell = []
-            if self.agent_cell.checkBreeze():
-                for adj in adjCell:
-                    #Print
-                    self.print_output('Inference Pit: ' + str(adj.pos_matrix))
-                    #self.write_output('Inference Pit: ' + str(adj.pos_matrix))
-
-                    #Infer
-                    self.Action(s_action_infer_pit)
-                    neg_alpha = [adj.get_Literal(s_entities_pit, '-')]
-                    ispit = self.KB.inference(neg_alpha)
-
-                    #Pit inferencable: there is pit in adj
-                    if ispit:
-                        self.Action(s_action_de_pit)
-                        self.print_output("Detect Pit in " + str(adj.pos_matrix))
-
-                        adj.setexploredCell()
-                        print("show 1", (adj.pos_matrix[0], adj.pos_matrix[1]))
-                        self.objmap.show_cell(self.screen, adj.pos_matrix[0], adj.pos_matrix[1], True)
-                        adj.set_previousCell(adj)
-                        dangerCell.append(adj)
-
-                    #Pit uninferencable: cant infer pit
-                    else:
-                        #check if agent can inference no Pit
-                        self.Action(s_action_infer_npit)
-                        neg_alpha = [adj.get_Literal(s_entities_pit, '+')]
-                        isnotpit  = self.KB.inference(neg_alpha)
-
-                        #Not Pit inferencable: there is no pit
-                        if isnotpit:
-                            self.Action(s_action_de_npit)
-                            self.print_output("Detect no Pit in " + str(adj.pos_matrix))
-
-                            # adj.setexploredCell()
-
-                        #No Pit uninferencable / Pit uninferencable: add :>
-                        else:
-                            dangerCell.append(adj)
+            
         #Remove all danger cell in next_cell_list -> safe next_cell_list
         dangerCell = list(set(dangerCell))
         for danger in dangerCell:
