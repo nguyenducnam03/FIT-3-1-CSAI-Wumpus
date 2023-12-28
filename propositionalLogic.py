@@ -8,7 +8,7 @@ from constant import *
 import copy
 
 import copy
-speed_time = 100
+speed_time = 50
 
 
 previousCell_list = []

@@ -84,16 +84,17 @@ class KnowledgeBase:
         
         if neg_alpha in clause_list:
             return False
-
+        # A or B or C or D
         #Inference
         adj_cell = cell_pos.get_adjCells(self_logic.map)
         if type==1: #isPIT
-            T = True
+            T = True #P10 <---- B9 B11 B20 B0
             for adj in adj_cell:
                 temp = [adj.get_Literal(s_entities_bre, '+')]
                 if temp not in clause_list:
                     T = False
-                else:
+                else: #adj is breeze
+                    #B9 ^ 3 thang xung quanh B9 ko la pit --> P10
                     T2 = True
                     sub_adj_cell = adj.get_adjCells(self_logic.map)
                     sub_adj_cell.remove(cell_pos)
