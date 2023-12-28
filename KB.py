@@ -1,138 +1,141 @@
-import copy
 import itertools
+import copy
+import re
+import cell as Cell
+from constant import *
+
+def extract_number(s):
+    number = re.search(r'\d+', s)
+    if number:
+        return int(number.group())
+    else:
+        return None
 
 class KnowledgeBase:
+    # Constructor.
     def __init__(self):
         self.KB = []
+        self.alpha = []
+        self.new_clauses_list = []
+        self.solution = False
 
+    #Return a standardized clause:
+    @staticmethod
+    def standard_clause(clause: list):
+        return sorted(list(set(copy.deepcopy(clause))), key=lambda x: x[-3])
 
     def add(self, clause):
-        if clause not in self.KB and not self.checkComplementary(clause):
+        clause = self.standard_clause(clause)
+        if clause not in self.KB:  # and not self.checkComplementary(clause):
             self.KB.append(clause)
 
-    def getNegative_atom(self, atom):
-        print('atom = ', atom)
-        if atom[0] == '-':
-            return atom[1:]
-        else:
-            return '-' + atom
+    def rem(self, clause):
+        clause = self.standard_clause(clause)
+        if clause in self.KB:
+            self.KB.remove(clause)
 
-    def check_True(self, clause, list_clauses):
-        for c in list_clauses:
-            if set(c).issubset(set(clause)):
+    #Get Negative of literal
+    @staticmethod
+    def getNegative(literal: str):
+        if literal[0] == '-':
+            return literal[1:]
+        return '-' + literal
+
+    #Check if 2 literals are complementary (etc: P11 vs -P11)
+    @staticmethod
+    def is_complentary_literals(literal_1: str, literal_2: str):
+        return len(literal_1) != len(literal_2) and literal_1[-3:] == literal_2[-3:]
+
+    # # Check if a clause is empty.
+    # @staticmethod
+    # def is_empty_clause(clause: list):
+    #     return len(clause) == 0
+
+    # Check if a clause is valid (always True).
+    def is_valid_clause(self, clause):
+        for i in range(len(clause) - 1):
+            if self.is_complentary_literals(clause[i], clause[i + 1]):
                 return True
         return False
 
-    def rem(self, clauses):
-        res = []
-        for c in clauses:
-            if not self.check_True(c, res):
-                res.append(c)
-        return res
+    # Resolve 2 clauses then return a list of resolvents (list of clauses).
+    def resolve(self, clause_1: list, clause_2: list):
+        resolvents = []
+        for i in range(len(clause_1)):
+            for j in range(len(clause_2)):
+                if self.is_complentary_literals(clause_1[i], clause_2[j]):
+                    resolvent = clause_1[:i] + clause_1[i + 1:] + clause_2[:j] + clause_2[j + 1:]
+                    resolvents.append(self.standard_clause(resolvent))
+        return resolvents
 
-    def toCNF(self, clauses):
-        res = []
-        product_all = list(itertools.product(*clauses))
-        for i in product_all:
-            new = self.normClause(list(itertools.chain.from_iterable(list(i))))
-            if not self.checkComplementary(new) and new not in res:
-                res.append(new)
-        res.sort(key=len)
-        res = self.rem(res)
-        return res
+    #PL Resolution
+    def inference(self, cell_pos ,self_logic, type):
+        clause_list = copy.deepcopy(self.KB)
+        #Inference
+        if type==1: #isPIT
+            neg_alpha = [cell_pos.get_Literal(s_entities_pit, '-')]
+        elif type==2:#isNotPit
+            neg_alpha = [cell_pos.get_Literal(s_entities_pit, '+')]
+        elif type==3:#isWumpus
+            neg_alpha = [cell_pos.get_Literal(s_entities_wum, '-')]
+        elif type==4:#isNotWumpus
+            neg_alpha = [cell_pos.get_Literal(s_entities_wum, '+')]
 
-    def checkComplementary(self, clause):
-        for atom in clause:
-            if self.getNegative_atom(atom) in clause:
-                return True
-        return False
+        
+        if neg_alpha in clause_list:
+            return False
 
-    def standard_clause(self, clause):
-        # clause = [str(atom) for atom in clause]
-
-        clause = list(dict.fromkeys(clause))
-
-        tuple_form = []
-        for atom in clause:
-            if atom[0] == '-':
-                tuple_form.append((atom[1:], -1))
-            else:
-                tuple_form.append((atom, 1))
-        tuple_form.sort()
-
-        res = []
-        for tup in tuple_form:
-            if tup[1] == -1:
-                res.append('-' + tup[0])
-            else:
-                res.append(tup[0])
-        return res
-
-    # Thêm một mệnh đề vào cơ sở tri thức
-    def add(self, clause):
-        if clause not in self.KB and not self.checkComplementary(clause):
-            self.KB.append(clause)
-
-    # Giải quyết một cặp mệnh đề
-    def resolve(self, clause_i, clause_j):
-        new_clause = []
-        for atom in clause_i:
-            neg_atom = self.getNegative_atom(atom)
-            if neg_atom in clause_j:
-                temp_c_i = clause_i.copy()
-                temp_c_j = clause_j.copy()
-                temp_c_i.remove(atom)
-                temp_c_j.remove(neg_atom)
-                if not temp_c_i and not temp_c_j:
-                    new_clause.append(['{}'])
+        #Inference
+        adj_cell = cell_pos.get_adjCells(self_logic.map)
+        if type==1: #isPIT
+            T = True
+            for adj in adj_cell:
+                temp = [adj.get_Literal(s_entities_bre, '+')]
+                if temp not in clause_list:
+                    T = False
                 else:
-                    clause = temp_c_i + temp_c_j
-                    clause = self.standard_clause(clause)
-                    if not self.checkComplementary(clause) and clause not in self.KB:
-                        new_clause.append(clause)
-        return new_clause
-
-    # Giải quyết truy vấn
-    def solve(self, neg_query):
-        tempKB = KnowledgeBase()
-        tempKB.KB = self.KB.copy()
-
-        # neg_query = self.getNegative_query(query)
-        # print(neg_query)
-
-        for neg_atom in neg_query:
-            tempKB.add(neg_atom)
-
-        result = []
-        while True:
-            clause_pairs = list(itertools.combinations(range(len(tempKB.KB)), 2))
-
-            resolvents = []
-            for pair in clause_pairs:
-                resolvent = tempKB.resolve(tempKB.KB[pair[0]], tempKB.KB[pair[1]])
-                if resolvent and resolvent not in resolvents:
-                    resolvents.append(resolvent)
-
-            resolvents = list(itertools.chain.from_iterable(resolvents))
-            result.append(resolvents)
-
-            if not resolvents:
-                return result, True
-            else:
-                if ['{}'] in resolvents:
-                    return result, False
+                    T2 = True
+                    sub_adj_cell = adj.get_adjCells(self_logic.map)
+                    sub_adj_cell.remove(cell_pos)
+                    for sub_adj in sub_adj_cell:
+                        temp = [sub_adj.get_Literal(s_entities_pit, '-')]
+                        if temp not in clause_list:
+                            T2 = False
+                    if T2==True:
+                        T = True
+                        break            
+            return T
+        elif type==2:#isNotPit
+            T = True
+            for adj in adj_cell:
+                temp = [adj.get_Literal(s_entities_bre, '-')]
+                if temp not in clause_list:
+                    T = False
+                    return T
+            return T
+        elif type==3:#isWumpus
+            T = True
+            for adj in adj_cell:
+                temp = [adj.get_Literal(s_entities_ste, '+')]
+                if temp not in clause_list:
+                    T = False
                 else:
-                    for res in resolvents:
-                        tempKB.add(res)
-
-    def inference(self, not_alpha):
-        tempKB = KnowledgeBase()
-        KB_list = tempKB.KB.copy()
-        negative_alpha = not_alpha
-        for i in KB_list:
-            tempKB.add(i)
-        for i in negative_alpha:
-            tempKB.add(i)
-        result, is_entailed = tempKB.solve(not_alpha)
-
-        return not is_entailed
+                    T2 = True
+                    sub_adj_cell = adj.get_adjCells(self_logic.map)
+                    sub_adj_cell.remove(cell_pos)
+                    for sub_adj in sub_adj_cell:
+                        temp = [sub_adj.get_Literal(s_entities_wum, '-')]
+                        if temp not in clause_list:
+                            T2 = False
+                    if T2==True:
+                        T = True
+                        break            
+            return T
+        elif type==4:#isNotWumpus
+            T = True
+            for adj in adj_cell:
+                temp = [adj.get_Literal(s_entities_ste, '-')]
+                if temp not in clause_list:
+                    T = False
+                    return T
+            return T

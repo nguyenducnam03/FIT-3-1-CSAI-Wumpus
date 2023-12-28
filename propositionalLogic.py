@@ -8,7 +8,7 @@ from constant import *
 import copy
 
 import copy
-speed_time = 100
+speed_time = 10
 
 
 previousCell_list = []
@@ -176,7 +176,9 @@ class Propositional_Logic:
         #Print out
         # self.print_output(self.KB.KB)
         # self.write_output(self.KB.KB)
-
+    
+    def add_clause_KB(self,clause):
+        self.KB.add(clause)
     #BACTRACK-SEARCH --------------------------------------------------------------------------------------------------|
     def backtrackSearch(self):
         #Check condition ---------------------------------------------------|
@@ -229,8 +231,9 @@ class Propositional_Logic:
 
         dangerCell = [] #To store dangerous cell can infer from this cell?
         # current cell contain Stench, Breeze -> inference from KB to make decision
-        if self.agent_cell.pos_matrix == (1,2):
-            print("ducnam")
+        type = -1
+        if self.agent_cell.pos_matrix == (2,2):
+            print("hi")
         if not self.agent_cell.isSafe():
             #remove Pit cell that already known
             knownPit_cell = []
@@ -251,8 +254,10 @@ class Propositional_Logic:
 
                     #Infer
                     self.Action(s_action_infer_pit)
-                    neg_alpha = [adj.get_Literal(s_entities_pit, '-')]
-                    ispit = self.KB.inference(neg_alpha)
+                    type = 1
+                    ispit = self.KB.inference(adj,self,type)
+                    # neg_alpha = [adj.get_Literal(s_entities_pit, '-')]
+                    # ispit = self.KB.inference(neg_alpha)
 
                     #Pit inferencable: there is pit in adj
                     if ispit:
@@ -260,7 +265,7 @@ class Propositional_Logic:
                         self.print_output("Detect Pit in " + str(adj.pos_matrix))
 
                         adj.setexploredCell()
-                        print("show 1", (adj.pos_matrix[0], adj.pos_matrix[1]))
+                        self.add_to_KB(adj)
                         self.objmap.show_cell(self.screen, adj.pos_matrix[0], adj.pos_matrix[1], True)
                         adj.set_previousCell(adj)
                         dangerCell.append(adj)
@@ -269,8 +274,10 @@ class Propositional_Logic:
                     else:
                         #check if agent can inference no Pit
                         self.Action(s_action_infer_npit)
-                        neg_alpha = [adj.get_Literal(s_entities_pit, '+')]
-                        isnotpit  = self.KB.inference(neg_alpha)
+                        type = 2
+                        isnotpit  = self.KB.inference(adj,self,type)
+                        # neg_alpha = [adj.get_Literal(s_entities_pit, '+')]
+                        # isnotpit  = self.KB.inference(neg_alpha)
 
                         #Not Pit inferencable: there is no pit
                         if isnotpit:
@@ -278,6 +285,8 @@ class Propositional_Logic:
                             self.print_output("Detect no Pit in " + str(adj.pos_matrix))
 
                             # adj.setexploredCell()
+                            clause = [adj.get_Literal(s_entities_pit, '-')]
+                            self.add_clause_KB(clause)
 
                         #No Pit uninferencable / Pit uninferencable: add :>
                         else:
@@ -291,9 +300,13 @@ class Propositional_Logic:
                     #self.write_output('Inference Wumpus: ' + str(adj.pos_matrix))
 
                     #Infer
+                    # self.Action(s_action_infer_wumpus)
+                    # neg_alpha = [adj.get_Literal(s_entities_wum, '-')]
+                    # iswum = self.KB.inference(neg_alpha)
+
+                    type=3
                     self.Action(s_action_infer_wumpus)
-                    neg_alpha = [adj.get_Literal(s_entities_wum, '-')]
-                    iswum = self.KB.inference(neg_alpha)
+                    iswum = self.KB.inference(adj,self,type)
 
                     #Wumpus inferencable: there is wumpus -> kill -> safe
                     if iswum:
@@ -306,14 +319,20 @@ class Propositional_Logic:
                         self.Action(s_action_kill)
                         adj.kill_Wumpus(self.map, self.KB)
 
+                        clause = [adj.get_Literal(s_entities_wum, '-')]
+                        self.add_clause_KB(clause)
+
                         #self.write_output(str(self.KB.KB))
 
                     #Wumpus uninferencable: cant infer wumpus
                     else:
                         #check if agent can inference no Wumpus
+                        # self.Action(s_action_infer_nwumpus)
+                        # neg_alpha = [adj.get_Literal(s_entities_wum, '+')]
+                        # isnotwum = self.KB.inference(neg_alpha)
+                        type=4
                         self.Action(s_action_infer_nwumpus)
-                        neg_alpha = [adj.get_Literal(s_entities_wum, '+')]
-                        isnotwum = self.KB.inference(neg_alpha)
+                        isnotwum = self.KB.inference(adj,self,type)
 
                         #no Wumpus inferencable: there is no wumpus
                         if isnotwum:
@@ -321,6 +340,8 @@ class Propositional_Logic:
                             #self.print_output("Detect no Wumpus in " + str(adj.pos_matrix))
 
                             # adj.setexploredCell()
+                            clause = [adj.get_Literal(s_entities_ste, '-')]
+                            self.add_clause_KB(clause)
 
                         #No Wumpus uninferencable / Wumpus uninferencable
                         else:
