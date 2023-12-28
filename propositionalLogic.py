@@ -8,7 +8,7 @@ from constant import *
 import copy
 
 import copy
-speed_time = 100
+speed_time = 10
 
 
 previousCell_list = []
@@ -457,10 +457,14 @@ class Propositional_Logic:
                     index_nam-=1
                 print()
                 pygame.time.delay(speed_time)
+                if len(previousCell_list)==0:
+                    return
                 self.move_to(adjCell_list[index_previous])
                 while (previousCell_list[-1] != adjCell_list[index_previous].pos_matrix):
                     previousCell_list.remove(previousCell_list[-1])
                 previousCell_list.remove(previousCell_list[-1])
+
+                
                 #self.write_output('Backtrack: ' + str(previousCell.pos_matrix))
         else:
             for cell in self.agent_cell.next_list:
@@ -533,10 +537,14 @@ class Propositional_Logic:
                         index_nam-=1
                     print()
                     pygame.time.delay(100)
+                    if len(previousCell_list)==0:
+                        break
                     self.move_to(adjCell_list[index_previous])
                     while (previousCell_list[-1] != adjCell_list[index_previous].pos_matrix):
                         previousCell_list.remove(previousCell_list[-1])
                     previousCell_list.remove(previousCell_list[-1])
+
+                    
                     #self.write_output('Backtrack: ' + str(previousCell.pos_matrix))
         return True
 
