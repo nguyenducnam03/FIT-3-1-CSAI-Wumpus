@@ -8,7 +8,7 @@ from constant import *
 import copy
 
 import copy
-speed_time = 10
+speed_time = 100
 
 
 previousCell_list = []
@@ -232,7 +232,7 @@ class Propositional_Logic:
         dangerCell = [] #To store dangerous cell can infer from this cell?
         # current cell contain Stench, Breeze -> inference from KB to make decision
         type = -1
-        if self.agent_cell.pos_matrix == (2,2):
+        if self.agent_cell.pos_matrix == (1,5):
             print("hi")
         if not self.agent_cell.isSafe():
             #remove Pit cell that already known
@@ -265,7 +265,9 @@ class Propositional_Logic:
                         self.print_output("Detect Pit in " + str(adj.pos_matrix))
 
                         adj.setexploredCell()
-                        self.add_to_KB(adj)
+                        # self.add_to_KB(adj)
+                        clause = [adj.get_Literal(s_entities_pit, '+')]
+                        self.add_clause_KB(clause)
                         self.objmap.show_cell(self.screen, adj.pos_matrix[0], adj.pos_matrix[1], True)
                         adj.set_previousCell(adj)
                         dangerCell.append(adj)
