@@ -8,7 +8,7 @@ from constant import *
 import copy
 
 import copy
-speed_time = 50
+speed_time = 100
 
 
 previousCell_list = []
@@ -417,7 +417,9 @@ class Propositional_Logic:
             if temp_T:
                 temp = []
                 for cell_nam in adjCell_list:
-                    if not cell_nam.isSafe():
+                    if cell_nam.pos_matrix==previousCell_list[-1]:
+                        continue
+                    if not cell_nam.isSafe() :
                         temp.append(cell_nam)
                     if not cell_nam.pos_matrix in previousCell_list:
                         temp.append(cell_nam)

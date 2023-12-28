@@ -4,8 +4,8 @@ B.P.BSG.-.B.-.-.B.-.-
 -.B.-.-.-.-.-.-.-.-
 -.G.-.S.-.-.-.B.-.S
 -.-.S.W.SG.B.B.P.BS.W
-S.-.G.S.B.P.B.BG.-.S
-W.S.G.-.G.B.-.-.-.-
-S.W.S.G.-.-.-.S.-.-
+S.-.G.S.B.P.B.BG.B.S
+W.S.G.-.G.B.-.BG.P.B
+S.W.S.G.-.-.-.S.B.-
 -.S.B.-.-.G.S.W.S.-
 A.B.P.B.-.-.-.S.-.-
