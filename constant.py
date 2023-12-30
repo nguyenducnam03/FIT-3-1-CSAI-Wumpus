@@ -25,6 +25,7 @@ s_display_about = r'assets/stage/about.png'
 
 # Map
 s_map_list = [r'assets/map_txt/map_1.txt', r'assets/map_txt/map_2.txt', r'assets/map_txt/map_3.txt', r'assets/map_txt/map_4.txt', r'assets/map_txt/map_5.txt']
+s_out_list = [r'output/out_1.txt', r'output/out_2.txt', r'output/out_3.txt', r'output/out_4.txt', r'output/out_5.txt']
 
 # Map elements
 s_map_ele_unexplored = r'assets/map_elements/init.png'
@@ -58,7 +59,14 @@ s_map_ele_exploredList = {'[True, False, False, False, False]':r'assets/map_elem
                           '[False, False, False, True, True]':r'assets/map_elements/Explored/Explored-._.B.S.png',
                           '[False, False, False, False, False]':r'assets/map_elements/Explored.png',
                           '[False, True, False, False, False]':r'assets/map_elements/pit.png',
-                          '[False, False, True, False, False]':r'assets/map_elements/wumpus.png'}
+                          '[False, False, True, False, False]':r'assets/map_elements/wumpus.png',
+                          '[True, False, True, False, False]':r'assets/map_elements/Explored/Explored-.G._._.W.png',
+                          '[True, False, True, True, False]':r'assets/map_elements/Explored/Explored-.G.B._.W.png',
+                          '[True, False, True, False, True]':r'assets/map_elements/Explored/Explored-.G._.S.W.png',
+                          '[True, False, True, True, True]':r'assets/map_elements/Explored/Explored-.G.B.S.W.png',
+                          '[False, False, True, True, False]':r'assets/map_elements/Explored/Explored-._.B._.W.png',
+                          '[False, False, True, False, True]':r'assets/map_elements/Explored/Explored-._._.S.W.png',
+                          '[False, False, True, True, True]':r'assets/map_elements/Explored/Explored-._.B.S.W.png'}
 
 # Color
 s_color_black = (0, 0, 0)

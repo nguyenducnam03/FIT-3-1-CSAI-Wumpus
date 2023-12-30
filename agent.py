@@ -8,13 +8,10 @@ class Agent(pygame.sprite.Sprite):
         self.image = pygame.image.load(s_agent_right)
         self.imageList = [pygame.image.load(s_agent_up), pygame.image.load(s_agent_down), pygame.image.load(s_agent_left), self.image]
                          #0-Up, 1-Down, 2-Left, 3-Right
-        self.rect  = self.image.get_rect()
         self.arrow = [pygame.image.load(s_agent_arrow_up), pygame.image.load(s_agent_arrow_down), pygame.image.load(s_agent_arrow_left), pygame.image.load(s_agent_arrow_right)]
         #Control
         self.position = initPos
         self.facing = s_agent_direction_right #[0-up, 1-down, 2-left, 3-right]
-        #Logic
-        self.score  = 0
 
     def graphicPos(self, pos):
         #x = 20 + 60 * col_pos , y = 20 + 60 * row_pos
@@ -25,10 +22,6 @@ class Agent(pygame.sprite.Sprite):
         screen.blit(self.image, self.graphicPos(self.position))
         pygame.display.update()
 
-    #Score
-    def getScore(self):
-        return self.score
-
     #CONTROL ===========================================================================================================
     def turn(self, screen, direction):
         #direction = [0-up, 1-down, 2-left, 3-right]
@@ -38,7 +31,6 @@ class Agent(pygame.sprite.Sprite):
 
     def move(self, screen, direction):
         #đây là di chuyển theo góc nhìn người xem, không phải agent
-        self.score   -= 10
         if direction == s_agent_direction_up:
             self.position = (self.position[0] - 1, self.position[1])
         elif direction == s_agent_direction_down:
@@ -70,19 +62,3 @@ class Agent(pygame.sprite.Sprite):
         screen.blit(arrow_image, self.graphicPos(shoot_pos))
         pygame.display.update()
         return direction
-
-    #Interact: Scoring =================================================================================================
-    def grabGold(self):
-        self.score += 100
-
-    def shootArrow(self):
-        self.score -= 100
-
-    def eatenbyWumpus(self):
-        self.score -= 10000
-
-    def fallinLuv(self):
-        self.score -= 10000
-
-    def climbOut(self):
-        self.score += 10

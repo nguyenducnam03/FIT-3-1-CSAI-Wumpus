@@ -74,9 +74,9 @@ class wumpus_game:
                 self.stageGame_display()
                 #Run game
                 if self.algo_pick == 0:
-                    self.propositionalLogic()
+                    self.propositionalLogic_BW()
                 elif self.algo_pick == 1:
-                    self.first_orderLogic()
+                    self.propositionalLogic_RE()
                 #
             elif self.stage == s_state_end:
                 self.stageEnd_display()
@@ -105,9 +105,6 @@ class wumpus_game:
             else:
                 self.drawButton(self.screen, s_button_map5, s_color_coral, s_color_white, 'Back')
             pygame.display.update()
-
-
-
 
     # Home Stage============================| PICK MAP
     def stageHome_display(self):
@@ -201,13 +198,13 @@ class wumpus_game:
 
             self.mouse = pygame.mouse.get_pos()
             if 260 <= self.mouse[0] <= 560 and 250 <= self.mouse[1] <= 300:
-                self.drawButton(self.screen, s_button_map2, s_color_dgray, s_color_white, 'Propositional Logic')
+                self.drawButton(self.screen, s_button_map2, s_color_dgray, s_color_white, 'Propositional Logic (BW)')
             else:
-                self.drawButton(self.screen, s_button_map2, s_color_coral, s_color_white, 'Propositional Logic')
+                self.drawButton(self.screen, s_button_map2, s_color_coral, s_color_white, 'Propositional Logic (BW)')
             if 260 <= self.mouse[0] <= 560 and 320 <= self.mouse[1] <= 370:
-                self.drawButton(self.screen, s_button_map3, s_color_dgray, s_color_white, 'First Order Logic')
+                self.drawButton(self.screen, s_button_map3, s_color_dgray, s_color_white, 'Propositional Logic (Re)')
             else:
-                self.drawButton(self.screen, s_button_map3, s_color_coral, s_color_white, 'First Order Logic')
+                self.drawButton(self.screen, s_button_map3, s_color_coral, s_color_white, 'Propositional Logic (Re)')
             if 260 <= self.mouse[0] <= 560 and 390 <= self.mouse[1] <= 440:
                 self.drawButton(self.screen, s_button_map4, s_color_dgray, s_color_white, 'Back')
             else:
@@ -224,8 +221,7 @@ class wumpus_game:
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if 645 <= self.mouse[0] <= 795 and 574 <= self.mouse[1] <= 624:
-                    self.stage = s_state_game
-                    self.algo_pick = 1 - 1
+                    self.stage = s_state_home
                     break
             # Quit game :<
             elif event.type == pygame.QUIT:
@@ -240,7 +236,7 @@ class wumpus_game:
             pygame.display.update()
 
     #GAME ==============================================================================================================
-    def propositionalLogic(self):
+    def propositionalLogic_BW(self):
         sys.setrecursionlimit(100000)
         #Read and Show map
         map = Map.Map()
@@ -250,15 +246,27 @@ class wumpus_game:
         agent = Agent.Agent(map.getInit_agent())
         agent.agent_appear(self.screen)
         #Run
-        outfile = open('out1.txt', 'a')
-        self.score = prop.Propositional_Logic(self, self.screen, map, agent, 'out1.txt', (9, 0), outfile).solving()
+        outfile = open(s_out_list[self.map_index], 'w')
+        self.score = prop.Propositional_Logic(self, self.screen, map, agent, (9, 0), outfile).solving_BW()
         outfile.close()
         #
         self.stage = s_state_end
 
-    def first_orderLogic(self):
-        while(True):
-            print('a')
+    def propositionalLogic_RE(self):
+        sys.setrecursionlimit(100000)
+        # Read and Show map
+        map = Map.Map()
+        map.read_map(s_map_list[self.map_index])
+        map.show_map1st(self.screen)
+        # Agent
+        agent = Agent.Agent(map.getInit_agent())
+        agent.agent_appear(self.screen)
+        # Run
+        outfile = open(s_out_list[self.map_index], 'w')
+        self.score = prop.Propositional_Logic(self, self.screen, map, agent, (9, 0), outfile).solving_RE()
+        outfile.close()
+        #
+        self.stage = s_state_end
 
     #END ===============================================================================================================
     def stageEnd_display(self):

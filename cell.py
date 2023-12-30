@@ -9,8 +9,8 @@ class Cell:
         self.explored = False
         self.entities = self.set_cell_entites(entities)
         #
-        self.previous  = None   #previous cell that lead to this
-        self.next_list = []     #;ist of cells that this cell will lead to (safe)
+        self.previous  = None
+        self.next_list = []
 
     #WORLD COORDINATE ==================================================================================================
     #matrix -> coordinate (room)
@@ -105,7 +105,6 @@ class Cell:
         literal += entity[0] + str(self.pos_matrix[0]) + str(self.pos_matrix[1])
         return literal
 
-
     #AGENT INTERACTING =================================================================================================
     # agent take gold
     def take_Gold(self):
@@ -113,8 +112,45 @@ class Cell:
 
     # agent kill Wumpus
     def kill_Wumpus(self, map_cell, KB):
+        # Remove Wumpus flag
+        self.entities['W'] = False
+        # Delete adjacent cells's  ~ Stench
+        adj = self.get_adjCells(map_cell)
+
+        for cell in adj:
+            # check if any Wumpus nearby (another Wumpus) if yes, stench still there
+            remove = True
+            cellAdj = cell.get_adjCells(map_cell)
+            for adjCell in cellAdj:
+                if adjCell.checkWumpus():
+                    remove = False  # Another Wumpus -> not remove Stench
+                    break
+
+            # remove Stench
+            if remove:
+                cell.entities['S'] = False
+
+                # KNOWLEDGE BASE CONFIGURATION--------------------------------|
+                # remove KB Cell stench and add KB Cell -stench
+                KB.rem([cell.get_Literal(s_entities_ste, '+')])
+                KB.add([cell.get_Literal(s_entities_ste, '-')])
+
+                # remove: S => Wa v Wb v Wb v Wb (line 118/propositionalLogic)
+                clause = [cell.get_Literal(s_entities_ste, '-')]
+                cell_Adj = cell.get_adjCells(map_cell)
+                for adjCell in cell_Adj:
+                    clause.append(adjCell.get_Literal(s_entities_wum, '+'))
+                KB.rem(clause)
+
+                # remove: Wa v Wb v Wc v Wd => S (line 124/propositionalLogic)
+                for adjCell in cell_Adj:
+                    clause = [cell.get_Literal(s_entities_ste, '+'), adjCell.get_Literal(s_entities_wum, '-')]
+                    KB.rem(clause)
+
+    def kill_Wumpus_Re(self, map_cell, KB):
         #Remove Wumpus flag
         self.entities['W'] = False
+        KB.addP([self.get_Literal(s_entities_pit, '-')])
         #Delete adjacent cells's  ~ Stench
         adj = self.get_adjCells(map_cell)
 
@@ -132,25 +168,12 @@ class Cell:
                 cell.entities['S'] = False
 
                 #KNOWLEDGE BASE CONFIGURATION--------------------------------|
-                #remove KB Cell stench and add KB Cell -stench
-                KB.rem([cell.get_Literal(s_entities_ste, '+')])
-                KB.add([cell.get_Literal(s_entities_ste, '-')])
+                KB.remW([cell.get_Literal(s_entities_ste, '+')])
+                KB.addW([cell.get_Literal(s_entities_ste, '-')])
 
-                #remove: S => Wa v Wb v Wb v Wb (line 118/propositionalLogic)
-                clause = [cell.get_Literal(s_entities_ste, '-')]
+                #remove: S => Wa v Wb v Wb v Wb
+                clause = []
                 cell_Adj = cell.get_adjCells(map_cell)
                 for adjCell in cell_Adj:
                     clause.append(adjCell.get_Literal(s_entities_wum, '+'))
-                KB.rem(clause)
-
-                #remove: Wa v Wb v Wc v Wd => S (line 124/propositionalLogic)
-                for adjCell in cell_Adj:
-                    clause = [cell.get_Literal(s_entities_ste, '+'), adjCell.get_Literal(s_entities_wum, '-')]
-                    KB.rem(clause)
-
-
-
-
-
-
-
+                KB.remW(clause)
